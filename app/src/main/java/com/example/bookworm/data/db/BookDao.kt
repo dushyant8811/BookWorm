@@ -1,3 +1,4 @@
+// In BookDao.kt
 package com.example.bookworm.data.db
 
 import androidx.room.Dao
@@ -11,12 +12,17 @@ import androidx.room.Delete
 
 @Dao
 interface BookDao {
-    // Using Flow, the UI will automatically update when the data changes.
     @Query("SELECT * FROM books ORDER BY title ASC")
     fun getAllBooks(): Flow<List<Book>>
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    // --- START OF FIX ---
+    // Change the strategy to REPLACE. It's the most robust option for
+    // an insert function where you might be handling objects that could
+    // potentially conflict. It will insert if new, or replace if the
+    // primary key matches.
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBook(book: Book)
+    // --- END OF FIX ---
 
     @Query("SELECT * FROM books WHERE id = :bookId")
     fun getBookById(bookId: Int): Flow<Book?>
@@ -29,5 +35,4 @@ interface BookDao {
 
     @Delete
     suspend fun deleteBook(book: Book)
-
 }

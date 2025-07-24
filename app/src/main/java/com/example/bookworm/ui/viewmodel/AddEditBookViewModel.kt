@@ -16,12 +16,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.io.FileOutputStream
 import java.util.Calendar
 
 class AddEditBookViewModel(
-    private val application: Application, // We need the application context for file operations
+    private val application: Application,
     savedStateHandle: SavedStateHandle,
     private val repository: BookRepository
 ) : ViewModel() {
@@ -37,27 +38,60 @@ class AddEditBookViewModel(
     private val bookId: Int? = savedStateHandle["bookId"]
     private var currentBook: Book? = null
 
-    val isEditing = bookId != null
+    val isEditing = bookId != null && bookId != -1
     // A flag to track if the image has been changed by the user in edit mode
     private var isImageChanged = false
 
+    // Add a loading state to track when the book is being loaded
+    val isLoading = mutableStateOf(false)
+
     init {
-        if (isEditing) {
+        println("DEBUG: ViewModel init - isEditing: $isEditing, bookId: $bookId")
+
+        if (isEditing && bookId != null) {
+            println("DEBUG: Loading book with ID: $bookId")
+            isLoading.value = true
+
             viewModelScope.launch {
-                currentBook = repository.getBookById(bookId!!).firstOrNull()
-                currentBook?.let { book ->
-                    title.value = book.title
-                    author.value = book.author
-                    selectedGenre.value = book.genre
-                    selectedYear.value = book.year.toString()
-                    description.value = book.review ?: ""
-                    imageUri.value = book.imageUri?.let { Uri.parse(it) }
+                try {
+                    // Add timeout to prevent hanging
+                    withTimeout(10000) { // 10 second timeout
+                        println("DEBUG: About to call repository.getBookById($bookId)")
+                        val bookFlow = repository.getBookById(bookId)
+                        println("DEBUG: Got flow, calling firstOrNull()")
+                        currentBook = bookFlow.firstOrNull()
+                        println("DEBUG: Loaded currentBook: $currentBook")
+
+                        currentBook?.let { book ->
+                            println("DEBUG: Populating fields with book data")
+                            title.value = book.title
+                            author.value = book.author
+                            selectedGenre.value = book.genre
+                            selectedYear.value = book.year.toString()
+                            description.value = book.review ?: ""
+                            book.imageUri?.let {
+                                imageUri.value = Uri.parse(it)
+                                println("DEBUG: Set image URI: $it")
+                            }
+                            println("DEBUG: All fields populated successfully")
+                        } ?: run {
+                            println("ERROR: Failed to load book with ID: $bookId - book not found in database")
+                        }
+                    }
+                } catch (e: Exception) {
+                    println("ERROR: Exception loading book: ${e.message}")
+                    println("ERROR: Exception type: ${e::class.java.simpleName}")
+                    e.printStackTrace()
+                } finally {
+                    isLoading.value = false
+                    println("DEBUG: Book loading completed, isLoading set to false")
                 }
             }
+        } else {
+            println("DEBUG: Not in edit mode or bookId is null")
         }
     }
 
-    // New public function for the UI to call when the image URI changes
     fun onImageUriChanged(uri: Uri?) {
         isImageChanged = true
         imageUri.value = uri
@@ -65,54 +99,145 @@ class AddEditBookViewModel(
 
     fun saveBook(onSaveFinished: () -> Unit) {
         viewModelScope.launch {
-            var finalImageUriString = if (isEditing) currentBook?.imageUri else null
+            try {
+                println("DEBUG: Starting to save book: ${title.value}")
+                println("DEBUG: Author: ${author.value}")
+                println("DEBUG: Genre: ${selectedGenre.value}")
+                println("DEBUG: Year: ${selectedYear.value}")
+                println("DEBUG: IsEditing: $isEditing")
+                println("DEBUG: CurrentBook: $currentBook")
 
-            // --- START OF FIX ---
-            // Only copy the image if it's new or has been changed by the user.
-            // We check if the URI is a temporary "content://" URI from the gallery/camera.
-            if (isImageChanged && imageUri.value != null && imageUri.value.toString().startsWith("content://")) {
-                finalImageUriString = copyImageToInternalStorage(application, imageUri.value!!)
-            } else if (isImageChanged) { // Handle case where image is set from camera (file://) or cleared
-                finalImageUriString = imageUri.value?.toString()
-            }
-            // --- END OF FIX ---
+                // Don't allow saving while still loading in edit mode
+                if (isEditing && isLoading.value) {
+                    println("DEBUG: Still loading book data, cannot save yet")
+                    return@launch
+                }
 
-            if (isEditing) {
-                val updatedBook = currentBook!!.copy(
-                    title = title.value.trim(),
-                    author = author.value.trim(),
-                    genre = selectedGenre.value,
-                    year = selectedYear.value.toIntOrNull() ?: 0,
-                    review = description.value.trim().takeIf { it.isNotBlank() },
-                    imageUri = finalImageUriString
-                )
-                repository.update(updatedBook)
-            } else {
-                val newBook = Book(
-                    title = title.value.trim(),
-                    author = author.value.trim(),
-                    genre = selectedGenre.value,
-                    year = selectedYear.value.toIntOrNull() ?: 0,
-                    review = description.value.trim().takeIf { it.isNotBlank() },
-                    imageUri = finalImageUriString
-                )
-                repository.insert(newBook)
+                // Step 1: Determine the final, permanent image URI string.
+                println("DEBUG: Processing image URI...")
+                val finalImageUriString: String? = when {
+                    // Case 1: The user picked a new image or cleared it.
+                    isImageChanged -> {
+                        println("DEBUG: Image was changed")
+                        imageUri.value?.let { uri ->
+                            println("DEBUG: Copying image to internal storage...")
+                            // If a new URI exists, copy it to our app's permanent storage.
+                            copyImageToInternalStorage(application, uri)
+                        }
+                        // If they cleared the image, imageUri.value will be null, so this correctly results in null.
+                    }
+                    // Case 2: We are editing, but the image was NOT changed.
+                    isEditing -> {
+                        println("DEBUG: Editing mode, keeping existing image")
+                        currentBook?.imageUri
+                    }
+                    // Case 3: We are adding a new book, and no image was picked.
+                    else -> {
+                        println("DEBUG: Adding new book, no image")
+                        null
+                    }
+                }
+                println("DEBUG: Final image URI: $finalImageUriString")
+
+                // Step 2: Create or Update the book object with the final data.
+                if (isEditing) {
+                    println("DEBUG: Updating existing book...")
+                    currentBook?.let { book ->
+                        println("DEBUG: Current book ID: ${book.id}")
+                        val updatedBook = book.copy(
+                            title = title.value.trim(),
+                            author = author.value.trim(),
+                            genre = selectedGenre.value,
+                            year = selectedYear.value.toIntOrNull() ?: 0,
+                            review = description.value.trim().takeIf { it.isNotBlank() },
+                            imageUri = finalImageUriString
+                        )
+                        println("DEBUG: Updated book object: $updatedBook")
+                        println("DEBUG: About to call repository.update...")
+                        repository.update(updatedBook)
+                        println("DEBUG: Repository.update completed successfully")
+                    } ?: run {
+                        // FALLBACK: If currentBook is null, try to reload it first
+                        println("ERROR: currentBook is null in edit mode! Attempting to reload...")
+                        if (bookId != null) {
+                            try {
+                                val reloadedBook = withTimeout(5000) {
+                                    repository.getBookById(bookId).firstOrNull()
+                                }
+                                if (reloadedBook != null) {
+                                    println("DEBUG: Successfully reloaded book: $reloadedBook")
+                                    val updatedBook = reloadedBook.copy(
+                                        title = title.value.trim(),
+                                        author = author.value.trim(),
+                                        genre = selectedGenre.value,
+                                        year = selectedYear.value.toIntOrNull() ?: 0,
+                                        review = description.value.trim().takeIf { it.isNotBlank() },
+                                        imageUri = finalImageUriString
+                                    )
+                                    repository.update(updatedBook)
+                                    println("DEBUG: Repository.update completed successfully after reload")
+                                } else {
+                                    println("ERROR: Could not reload book with ID: $bookId")
+                                    throw Exception("Book not found for update")
+                                }
+                            } catch (e: Exception) {
+                                println("ERROR: Failed to reload book: ${e.message}")
+                                throw e
+                            }
+                        } else {
+                            throw Exception("Cannot update: bookId is null")
+                        }
+                    }
+                } else {
+                    println("DEBUG: Creating new book...")
+                    val newBook = Book(
+                        title = title.value.trim(),
+                        author = author.value.trim(),
+                        genre = selectedGenre.value,
+                        year = selectedYear.value.toIntOrNull() ?: 0,
+                        review = description.value.trim().takeIf { it.isNotBlank() },
+                        imageUri = finalImageUriString
+                    )
+                    println("DEBUG: New book object: $newBook")
+                    println("DEBUG: About to call repository.insert...")
+                    repository.insert(newBook)
+                    println("DEBUG: Repository.insert completed successfully")
+                }
+
+                println("DEBUG: About to call onSaveFinished...")
+                // Step 3: If everything succeeded, call the callback to navigate back.
+                onSaveFinished()
+                println("DEBUG: onSaveFinished called successfully")
+
+            } catch (e: Exception) {
+                // If any part of the process fails, we log the error.
+                println("ERROR: Exception during save: ${e.message}")
+                println("ERROR: Exception type: ${e::class.java.simpleName}")
+                println("ERROR: Stack trace:")
+                e.printStackTrace()
+                // We do NOT navigate back, so the user stays on the screen and knows the save failed.
             }
-            onSaveFinished()
         }
     }
 
-    // --- THIS IS THE NEW CORE LOGIC FOR PERSISTENT IMAGES ---
     private suspend fun copyImageToInternalStorage(context: Context, uri: Uri): String? {
         return withContext(Dispatchers.IO) { // Perform file operations on a background thread
             try {
                 val inputStream = context.contentResolver.openInputStream(uri)
+                if (inputStream == null) {
+                    return@withContext null
+                }
+
                 val fileName = "book_cover_${System.currentTimeMillis()}.jpg"
                 val file = File(context.filesDir, fileName)
                 val outputStream = FileOutputStream(file)
-                inputStream?.copyTo(outputStream)
-                inputStream?.close()
-                outputStream.close()
+
+                inputStream.use { input ->
+                    outputStream.use { output ->
+                        input.copyTo(output)
+                    }
+                }
+
                 // Return the URI string of the NEW, permanent file
                 Uri.fromFile(file).toString()
             } catch (e: Exception) {
@@ -121,7 +246,6 @@ class AddEditBookViewModel(
             }
         }
     }
-    // --- END OF NEW CORE LOGIC ---
 
     companion object {
         fun Factory(application: Application): ViewModelProvider.Factory =

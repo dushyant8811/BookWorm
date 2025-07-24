@@ -13,10 +13,10 @@ class BookListViewModel(application: Application) : AndroidViewModel(application
 
     private val repository: BookRepository
 
-    // --- START OF FIX ---
-    // All StateFlow properties are DECLARED here, but will be INITIALIZED in the init block.
-    val allBooks: StateFlow<List<Book>>
+    // The single source of truth from the database.
+    private val allBooks: StateFlow<List<Book>>
 
+    // State for user-driven filtering and searching.
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
@@ -26,36 +26,24 @@ class BookListViewModel(application: Application) : AndroidViewModel(application
     private val _selectedAuthors = MutableStateFlow<Set<String>>(emptySet())
     val selectedAuthors = _selectedAuthors.asStateFlow()
 
+    // Public-facing flows for the UI.
     val availableGenres: StateFlow<List<String>>
     val availableAuthors: StateFlow<List<String>>
     val searchResults: StateFlow<List<Book>>
     val filteredBooks: StateFlow<List<Book>>
-    // --- END OF FIX ---
 
     init {
         val bookDao = AppDatabase.getDatabase(application).bookDao()
         repository = BookRepository(bookDao)
 
-        // --- START OF FIX ---
-        // Now we initialize everything in the correct order inside the init block.
-
-        // 1. Initialize allBooks first, as it's the source for everything else.
+        // 1. Initialize allBooks first. It's the master list.
         allBooks = repository.allBooks.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
 
-        // 2. Now that allBooks is initialized, we can create flows that depend on it.
-        availableGenres = allBooks.map { books ->
-            books.map { it.genre }.distinct().sorted()
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-        availableAuthors = allBooks.map { books ->
-            books.map { it.author }.distinct().sorted()
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-        // 3. Combine filters with the source of truth (allBooks).
+        // 2. The main grid list is filtered by genres and authors from the master list.
         filteredBooks = combine(allBooks, _selectedGenres, _selectedAuthors) { books, genres, authors ->
             if (genres.isEmpty() && authors.isEmpty()) {
                 books // No filter applied, return all books
@@ -68,10 +56,12 @@ class BookListViewModel(application: Application) : AndroidViewModel(application
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-        // 4. Combine search query with the *already filtered* list.
-        searchResults = combine(searchQuery, filteredBooks) { query, books ->
+        // --- THIS IS THE CRITICAL FIX ---
+        // 3. The search results list is filtered by the search query from the MASTER list.
+        //    It is no longer dependent on `filteredBooks`.
+        searchResults = combine(allBooks, searchQuery) { books, query ->
             if (query.isBlank()) {
-                emptyList() // Return nothing if search is blank
+                emptyList()
             } else {
                 books.filter { book ->
                     book.title.contains(query, ignoreCase = true) || book.author.contains(query, ignoreCase = true)
@@ -79,6 +69,16 @@ class BookListViewModel(application: Application) : AndroidViewModel(application
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
         // --- END OF FIX ---
+
+
+        // 4. These utility flows are derived from the master list.
+        availableGenres = allBooks.map { books ->
+            books.map { it.genre }.distinct().sorted()
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+        availableAuthors = allBooks.map { books ->
+            books.map { it.author }.distinct().sorted()
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     }
 
     fun onSearchQueryChanged(query: String) { _searchQuery.value = query }

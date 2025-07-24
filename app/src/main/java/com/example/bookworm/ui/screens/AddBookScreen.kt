@@ -15,7 +15,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
@@ -172,17 +171,80 @@ fun AddBookScreen(
 
             TextField(value = viewModel.title.value, onValueChange = { viewModel.title.value = it }, label = { Text("Book Title") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), colors = textFieldColors)
             TextField(value = viewModel.author.value, onValueChange = { viewModel.author.value = it }, label = { Text("Author's Name") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), colors = textFieldColors)
+            // Fixed Row section with corrected dropdown implementations
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                ExposedDropdownMenuBox(expanded = genreExpandedState.value, onExpandedChange = { genreExpandedState.value = !it }, modifier = Modifier.weight(1f)) {
-                    TextField(value = viewModel.selectedGenre.value, onValueChange = {}, label = { Text("Genre") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = genreExpandedState.value) }, modifier = Modifier.menuAnchor(), shape = RoundedCornerShape(12.dp), colors = textFieldColors)
-                    ExposedDropdownMenu(expanded = genreExpandedState.value, onDismissRequest = { genreExpandedState.value = false }) {
-                        genres.forEach { genre -> DropdownMenuItem(text = { Text(genre) }, onClick = { viewModel.selectedGenre.value = genre; genreExpandedState.value = false }) }
+
+                // --- GENRE DROPDOWN (FIXED IMPLEMENTATION) ---
+                ExposedDropdownMenuBox(
+                    expanded = genreExpandedState.value,
+                    onExpandedChange = { genreExpandedState.value = it }, // Changed from !it to it
+                    modifier = Modifier.weight(1f)
+                ) {
+                    TextField(
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth(), // Added fillMaxWidth for consistency
+                        value = viewModel.selectedGenre.value,
+                        onValueChange = {}, // Keep empty as it's readOnly
+                        readOnly = true,
+                        label = { Text("Genre") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = genreExpandedState.value)
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = textFieldColors
+                    )
+                    ExposedDropdownMenu(
+                        expanded = genreExpandedState.value,
+                        onDismissRequest = { genreExpandedState.value = false }
+                    ) {
+                        genres.forEach { genre ->
+                            DropdownMenuItem(
+                                text = { Text(genre) },
+                                onClick = {
+                                    viewModel.selectedGenre.value = genre
+                                    genreExpandedState.value = false
+                                },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding // Added for better spacing
+                            )
+                        }
                     }
                 }
-                ExposedDropdownMenuBox(expanded = yearExpandedState.value, onExpandedChange = { yearExpandedState.value = !it }, modifier = Modifier.weight(1f)) {
-                    TextField(value = viewModel.selectedYear.value, onValueChange = {}, label = { Text("Year") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = yearExpandedState.value) }, modifier = Modifier.menuAnchor(), shape = RoundedCornerShape(12.dp), colors = textFieldColors)
-                    ExposedDropdownMenu(expanded = yearExpandedState.value, onDismissRequest = { yearExpandedState.value = false }) {
-                        years.forEach { year -> DropdownMenuItem(text = { Text(year) }, onClick = { viewModel.selectedYear.value = year; yearExpandedState.value = false }) }
+
+                // --- YEAR DROPDOWN (FIXED IMPLEMENTATION) ---
+                ExposedDropdownMenuBox(
+                    expanded = yearExpandedState.value,
+                    onExpandedChange = { yearExpandedState.value = it }, // Changed from !it to it
+                    modifier = Modifier.weight(1f)
+                ) {
+                    TextField(
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth(), // Added fillMaxWidth for consistency
+                        value = viewModel.selectedYear.value,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Year") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = yearExpandedState.value)
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = textFieldColors
+                    )
+                    ExposedDropdownMenu(
+                        expanded = yearExpandedState.value,
+                        onDismissRequest = { yearExpandedState.value = false }
+                    ) {
+                        years.take(50).forEach { year -> // Limit to first 50 years for performance
+                            DropdownMenuItem(
+                                text = { Text(year) },
+                                onClick = {
+                                    viewModel.selectedYear.value = year
+                                    yearExpandedState.value = false
+                                },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding // Added for better spacing
+                            )
+                        }
                     }
                 }
             }
