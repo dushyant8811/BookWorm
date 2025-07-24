@@ -54,8 +54,8 @@ fun HomeTopBar(
             Icon(
                 imageVector = Icons.Filled.AccountCircle,
                 contentDescription = "Profile",
-                modifier = Modifier.size(44.dp), // A slightly larger size looks better for this icon
-                tint = MaterialTheme.colorScheme.primary // Use the theme's primary color (Dark Gray)
+                modifier = Modifier.size(44.dp),
+                tint = MaterialTheme.colorScheme.primary
             )
             Text(
                 text = "BookWorm",
@@ -63,7 +63,7 @@ fun HomeTopBar(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            IconButton(onClick = { /* TODO: Implement dark mode toggle */ }) {
+            IconButton(onClick = { }) {
                 Icon(
                     imageVector = Icons.Default.NightsStay,
                     contentDescription = "Toggle Dark Mode",
@@ -74,7 +74,6 @@ fun HomeTopBar(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Just a simple TextField now. No more complex boxes.
         TextField(
             value = searchQuery,
             onValueChange = onSearchQueryChanged,
@@ -87,7 +86,7 @@ fun HomeTopBar(
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search Icon") },
             trailingIcon = {
                 if (searchQuery.isNotBlank()) {
-                    // Show CLEAR button when typing
+
                     IconButton(onClick = {
                         onSearchQueryChanged("")
                         focusManager.clearFocus()
@@ -95,7 +94,7 @@ fun HomeTopBar(
                         Icon(Icons.Default.Close, contentDescription = "Clear Search")
                     }
                 } else {
-                    // Show FILTER button when empty
+
                     IconButton(onClick = onFilterClick) {
                         Icon(Icons.Default.Tune, contentDescription = "Filter Books")
                     }

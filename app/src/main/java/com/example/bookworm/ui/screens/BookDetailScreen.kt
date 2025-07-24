@@ -47,12 +47,11 @@ fun BookDetailScreen(navController: NavController) {
                 }
             )
         }
-    ) { paddingValues -> // We get the paddingValues from the Scaffold
+    ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize(),
-                    // IMPORTANT: We do NOT apply the padding here. We pass it down.
-                    // .padding(paddingValues),
+
                     contentAlignment = Alignment.Center
         ) {
             book?.let {
@@ -60,10 +59,9 @@ fun BookDetailScreen(navController: NavController) {
                     book = it,
                     onBorrow = { returnDate -> viewModel.borrowBook(returnDate) },
                     onReturn = { viewModel.returnBook() },
-                    // --- START OF CHANGE ---
-                    // Pass the paddingValues down to the detail view
+
                     paddingValues = paddingValues
-                    // --- END OF CHANGE ---
+
                 )
             } ?: CircularProgressIndicator()
         }

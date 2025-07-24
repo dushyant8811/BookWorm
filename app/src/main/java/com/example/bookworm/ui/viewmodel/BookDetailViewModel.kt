@@ -44,7 +44,7 @@ class BookDetailViewModel(
             }
     }
 
-    // SIMPLIFIED: borrowBook now only takes the return date.
+
     fun borrowBook(returnDateMillis: Long) {
         viewModelScope.launch {
             book.value?.let { currentBook ->

@@ -53,7 +53,7 @@ fun BookListScreen(
                 onFilterClick = { showFilterDialog = true }
             )
         },
-        // This line will now work correctly
+
         bottomBar = { AppBottomNavigation(currentRoute = "bookList", navController = navController) },
         floatingActionButton = {
             FloatingActionButton(onClick = { navController.navigate("addBook") },
@@ -116,7 +116,7 @@ fun BookListScreen(
                     searchResults = searchResults,
                     onSearchResultClick = { bookId ->
                         isSearchActive = false
-                        bookListViewModel.onSearchQueryChanged("") // Clear search on click
+                        bookListViewModel.onSearchQueryChanged("")
                         navController.navigate("bookDetail/$bookId")
                     }
                 )
@@ -169,23 +169,20 @@ fun BookListScreen(
     }
 }
 
-// --- THIS IS THE MISSING COMPOSABLE ---
-// It is now added back to the file.
-// In app/src/main/java/com/example/bookworm/ui/screens/BookListScreen.kt
 
 @Composable
 fun AppBottomNavigation(currentRoute: String?, navController: NavController) {
     NavigationBar(
         modifier = Modifier.height(105.dp),
-        // FINAL: Very light gray for bottom nav
+
         containerColor = Color(0xFFF5F5F5)
     ) {
         val navItemColors = NavigationBarItemDefaults.colors(
-            selectedIconColor = MaterialTheme.colorScheme.onPrimary, // White icon when selected
-            selectedTextColor = MaterialTheme.colorScheme.primary,   // Dark Gray text when selected
-            indicatorColor = MaterialTheme.colorScheme.primary,      // Dark Gray pill background
-            unselectedIconColor = MaterialTheme.colorScheme.secondary, // Medium Gray icon when not selected
-            unselectedTextColor = MaterialTheme.colorScheme.secondary  // Medium Gray text when not selected
+            selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+            selectedTextColor = MaterialTheme.colorScheme.primary,
+            indicatorColor = MaterialTheme.colorScheme.primary,
+            unselectedIconColor = MaterialTheme.colorScheme.secondary,
+            unselectedTextColor = MaterialTheme.colorScheme.secondary
         )
 
         NavigationBarItem(
@@ -218,7 +215,7 @@ fun AppBottomNavigation(currentRoute: String?, navController: NavController) {
         )
     }
 }
-// --- END OF THE MISSING COMPOSABLE ---
+
 
 @Preview(showSystemUi = true)
 @Composable

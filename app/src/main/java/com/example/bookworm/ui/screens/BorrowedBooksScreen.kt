@@ -41,8 +41,7 @@ fun BorrowedBooksScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Borrowed Books", fontWeight = FontWeight.Bold) },
-                // --- START OF CHANGES ---
-                // 1. ADDED A NAVIGATION ICON FOR THE BACK BUTTON
+
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(

@@ -13,10 +13,10 @@ class BookListViewModel(application: Application) : AndroidViewModel(application
 
     private val repository: BookRepository
 
-    // The single source of truth from the database.
+
     private val allBooks: StateFlow<List<Book>>
 
-    // State for user-driven filtering and searching.
+
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
@@ -26,7 +26,7 @@ class BookListViewModel(application: Application) : AndroidViewModel(application
     private val _selectedAuthors = MutableStateFlow<Set<String>>(emptySet())
     val selectedAuthors = _selectedAuthors.asStateFlow()
 
-    // Public-facing flows for the UI.
+
     val availableGenres: StateFlow<List<String>>
     val availableAuthors: StateFlow<List<String>>
     val searchResults: StateFlow<List<Book>>
@@ -36,17 +36,17 @@ class BookListViewModel(application: Application) : AndroidViewModel(application
         val bookDao = AppDatabase.getDatabase(application).bookDao()
         repository = BookRepository(bookDao)
 
-        // 1. Initialize allBooks first. It's the master list.
+
         allBooks = repository.allBooks.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
 
-        // 2. The main grid list is filtered by genres and authors from the master list.
+
         filteredBooks = combine(allBooks, _selectedGenres, _selectedAuthors) { books, genres, authors ->
             if (genres.isEmpty() && authors.isEmpty()) {
-                books // No filter applied, return all books
+                books
             } else {
                 books.filter { book ->
                     val genreMatch = genres.isEmpty() || book.genre in genres
@@ -56,9 +56,7 @@ class BookListViewModel(application: Application) : AndroidViewModel(application
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-        // --- THIS IS THE CRITICAL FIX ---
-        // 3. The search results list is filtered by the search query from the MASTER list.
-        //    It is no longer dependent on `filteredBooks`.
+
         searchResults = combine(allBooks, searchQuery) { books, query ->
             if (query.isBlank()) {
                 emptyList()
@@ -68,10 +66,10 @@ class BookListViewModel(application: Application) : AndroidViewModel(application
                 }
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-        // --- END OF FIX ---
 
 
-        // 4. These utility flows are derived from the master list.
+
+
         availableGenres = allBooks.map { books ->
             books.map { it.genre }.distinct().sorted()
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

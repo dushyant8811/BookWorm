@@ -34,7 +34,7 @@ fun BookDetailView(
     book: Book,
     onBorrow: (Long) -> Unit,
     onReturn: () -> Unit,
-    paddingValues: PaddingValues, // Parameter from the Scaffold
+    paddingValues: PaddingValues,
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
@@ -43,22 +43,17 @@ fun BookDetailView(
     val density = LocalDensity.current
 
     Column(
-        // --- START OF FIX ---
-        // We now apply the full padding from the Scaffold.
-        // This adds padding to the top for the status bar AND to the bottom for the navigation bar.
         modifier = modifier
             .fillMaxSize()
             .padding(paddingValues)
             .verticalScroll(scrollState),
-        // --- END OF FIX ---
+
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .graphicsLayer {
-                    // This calculation remains the same, but is now more accurate because the
-                    // coordinate system of our column starts in the correct place.
                     val topPaddingPx = with(density) { paddingValues.calculateTopPadding().toPx() }
                     val fadeOutDistance = titlePositionY - topPaddingPx
                     if (fadeOutDistance > 0) {
@@ -66,7 +61,7 @@ fun BookDetailView(
                         alpha = (1f - progress).coerceIn(0f, 1f)
                     }
                 }
-                .padding(top = 24.dp) // This is extra padding just for aesthetics
+                .padding(top = 24.dp)
         ) {
             AsyncImage(
                 model = book.imageUri,
@@ -80,7 +75,6 @@ fun BookDetailView(
             )
         }
 
-        // The content column no longer needs its own top padding, as the parent handles it.
         Column(
             modifier = Modifier
                 .padding(horizontal = 24.dp)
@@ -174,8 +168,7 @@ fun BookDetailView(
                     }
                 }
             }
-            // The final spacer is no longer needed as the parent padding handles it.
-            // Spacer(modifier = Modifier.height(24.dp))
+
         }
     }
 
@@ -196,7 +189,6 @@ fun BookDetailView(
     }
 }
 
-// CORRECTED: This is now a top-level function in the file
 private fun formatDate(millis: Long): String {
     val formatter = SimpleDateFormat("dd MMM, yyyy", Locale.getDefault())
     return formatter.format(Date(millis))
@@ -262,7 +254,7 @@ private fun BorrowSheetContent(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Duration", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 AssistChip(
-                    onClick = { /* Display only */ },
+                    onClick = { },
                     label = { Text(if (durationInDays > 0) "$durationInDays Days" else "-", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold) },
                     leadingIcon = { Icon(Icons.Default.Timer, "Duration", Modifier.size(AssistChipDefaults.IconSize)) }
                 )

@@ -20,16 +20,16 @@ fun SearchResultsList(
     onSearchResultClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // A Card provides the background and shape for our results list
+
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 32.dp), // Match the padding of the top bar
+            .padding(horizontal = 32.dp),
         shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         LazyColumn(
-            modifier = Modifier.heightIn(max = 300.dp) // Limit the max height to prevent covering the whole screen
+            modifier = Modifier.heightIn(max = 300.dp)
         ) {
             items(searchResults) { book ->
                 ListItem(

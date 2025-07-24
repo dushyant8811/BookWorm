@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
                             route = "addBook?bookId={bookId}",
                             arguments = listOf(navArgument("bookId") {
                                 type = NavType.IntType
-                                defaultValue = -1 // Default value for adding a new book
+                                defaultValue = -1
                             })
                         ) {
                             AddBookScreen(navController = navController)

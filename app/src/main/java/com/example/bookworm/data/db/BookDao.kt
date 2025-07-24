@@ -15,14 +15,9 @@ interface BookDao {
     @Query("SELECT * FROM books ORDER BY title ASC")
     fun getAllBooks(): Flow<List<Book>>
 
-    // --- START OF FIX ---
-    // Change the strategy to REPLACE. It's the most robust option for
-    // an insert function where you might be handling objects that could
-    // potentially conflict. It will insert if new, or replace if the
-    // primary key matches.
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBook(book: Book)
-    // --- END OF FIX ---
 
     @Query("SELECT * FROM books WHERE id = :bookId")
     fun getBookById(bookId: Int): Flow<Book?>

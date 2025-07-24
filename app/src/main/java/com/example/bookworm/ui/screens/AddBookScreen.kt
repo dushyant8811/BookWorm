@@ -30,7 +30,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path // <-- THE CORRECT IMPORT FOR DRAWING
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.StrokeCap
@@ -95,7 +95,7 @@ fun AddBookScreen(
             if (uri != null) {
                 viewModel.onImageUriChanged(uri)
                 uploadState.value = UploadState.Uploading(0f)
-                uploadKey++ // This will trigger the LaunchedEffect once
+                uploadKey++
             }
         }
     )
@@ -104,7 +104,7 @@ fun AddBookScreen(
         onResult = { success ->
             if (success) {
                 uploadState.value = UploadState.Uploading(0f)
-                uploadKey++ // This will trigger the LaunchedEffect once
+                uploadKey++
             } else {
                 viewModel.onImageUriChanged(null)
             }
@@ -118,7 +118,7 @@ fun AddBookScreen(
                 val uri = createImageUri(context)
                 viewModel.onImageUriChanged(uri)
                 cameraLauncher.launch(uri)
-                // Don't set upload state here, let cameraLauncher handle it
+
             } else {
                 Toast.makeText(context, "Camera permission is required.", Toast.LENGTH_SHORT).show()
             }
@@ -171,21 +171,21 @@ fun AddBookScreen(
 
             TextField(value = viewModel.title.value, onValueChange = { viewModel.title.value = it }, label = { Text("Book Title") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), colors = textFieldColors)
             TextField(value = viewModel.author.value, onValueChange = { viewModel.author.value = it }, label = { Text("Author's Name") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), colors = textFieldColors)
-            // Fixed Row section with corrected dropdown implementations
+
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
 
-                // --- GENRE DROPDOWN (FIXED IMPLEMENTATION) ---
+
                 ExposedDropdownMenuBox(
                     expanded = genreExpandedState.value,
-                    onExpandedChange = { genreExpandedState.value = it }, // Changed from !it to it
+                    onExpandedChange = { genreExpandedState.value = it },
                     modifier = Modifier.weight(1f)
                 ) {
                     TextField(
                         modifier = Modifier
                             .menuAnchor()
-                            .fillMaxWidth(), // Added fillMaxWidth for consistency
+                            .fillMaxWidth(),
                         value = viewModel.selectedGenre.value,
-                        onValueChange = {}, // Keep empty as it's readOnly
+                        onValueChange = {},
                         readOnly = true,
                         label = { Text("Genre") },
                         trailingIcon = {
@@ -205,22 +205,22 @@ fun AddBookScreen(
                                     viewModel.selectedGenre.value = genre
                                     genreExpandedState.value = false
                                 },
-                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding // Added for better spacing
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                             )
                         }
                     }
                 }
 
-                // --- YEAR DROPDOWN (FIXED IMPLEMENTATION) ---
+
                 ExposedDropdownMenuBox(
                     expanded = yearExpandedState.value,
-                    onExpandedChange = { yearExpandedState.value = it }, // Changed from !it to it
+                    onExpandedChange = { yearExpandedState.value = it },
                     modifier = Modifier.weight(1f)
                 ) {
                     TextField(
                         modifier = Modifier
                             .menuAnchor()
-                            .fillMaxWidth(), // Added fillMaxWidth for consistency
+                            .fillMaxWidth(),
                         value = viewModel.selectedYear.value,
                         onValueChange = {},
                         readOnly = true,
@@ -235,14 +235,14 @@ fun AddBookScreen(
                         expanded = yearExpandedState.value,
                         onDismissRequest = { yearExpandedState.value = false }
                     ) {
-                        years.take(50).forEach { year -> // Limit to first 50 years for performance
+                        years.take(50).forEach { year ->
                             DropdownMenuItem(
                                 text = { Text(year) },
                                 onClick = {
                                     viewModel.selectedYear.value = year
                                     yearExpandedState.value = false
                                 },
-                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding // Added for better spacing
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                             )
                         }
                     }
@@ -285,7 +285,7 @@ private fun createImageUri(context: Context): Uri {
     return FileProvider.getUriForFile(context, "${context.packageName}.provider", imageFile)
 }
 
-// THIS IS THE SINGLE, CORRECT VERSION OF THIS COMPOSABLE
+
 @Composable
 fun ImageUploadBox(
     uploadState: UploadState,
@@ -330,7 +330,7 @@ fun ProgressBorderCanvas(
         label = "progressAnimation"
     )
 
-    // Get the colors in the composable context
+
     val surfaceVariantColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
     val outlineColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
     val primaryColor = MaterialTheme.colorScheme.primary
@@ -340,13 +340,13 @@ fun ProgressBorderCanvas(
         val cornerRadiusValue = 12.dp.toPx()
         val cornerRadius = CornerRadius(cornerRadiusValue)
 
-        // Draw background
+
         drawRoundRect(
             color = surfaceVariantColor,
             cornerRadius = cornerRadius
         )
 
-        // Draw border outline
+
         drawRoundRect(
             color = outlineColor,
             cornerRadius = CornerRadius(cornerRadiusValue),
@@ -379,14 +379,14 @@ fun ProgressBorderCanvas(
             var currentDistance = 0f
             val halfWidth = (width - 2 * radius) / 2
 
-            // Top side (first half)
+
             if (targetDistance > currentDistance) {
                 val segmentLength = halfWidth
                 val drawDistance = kotlin.math.min(targetDistance - currentDistance, segmentLength)
                 progressPath.lineTo(topCenterX + drawDistance, topCenterY)
                 currentDistance += segmentLength
 
-                // Top-right corner
+
                 if (targetDistance > currentDistance) {
                     val arcLength = (Math.PI * radius / 2).toFloat()
                     val remainingInArc = kotlin.math.min(targetDistance - currentDistance, arcLength)
@@ -404,14 +404,14 @@ fun ProgressBorderCanvas(
                     )
                     currentDistance += arcLength
 
-                    // Right side
+
                     if (targetDistance > currentDistance) {
                         val segmentLength = height - 2 * radius
                         val drawDistance = kotlin.math.min(targetDistance - currentDistance, segmentLength)
                         progressPath.lineTo(right, top + radius + drawDistance)
                         currentDistance += segmentLength
 
-                        // Bottom-right corner
+
                         if (targetDistance > currentDistance) {
                             val arcLength = (Math.PI * radius / 2).toFloat()
                             val remainingInArc = kotlin.math.min(targetDistance - currentDistance, arcLength)
@@ -429,14 +429,14 @@ fun ProgressBorderCanvas(
                             )
                             currentDistance += arcLength
 
-                            // Bottom side
+
                             if (targetDistance > currentDistance) {
                                 val segmentLength = width - 2 * radius
                                 val drawDistance = kotlin.math.min(targetDistance - currentDistance, segmentLength)
                                 progressPath.lineTo(right - radius - drawDistance, bottom)
                                 currentDistance += segmentLength
 
-                                // Bottom-left corner
+
                                 if (targetDistance > currentDistance) {
                                     val arcLength = (Math.PI * radius / 2).toFloat()
                                     val remainingInArc = kotlin.math.min(targetDistance - currentDistance, arcLength)
@@ -454,14 +454,14 @@ fun ProgressBorderCanvas(
                                     )
                                     currentDistance += arcLength
 
-                                    // Left side
+
                                     if (targetDistance > currentDistance) {
                                         val segmentLength = height - 2 * radius
                                         val drawDistance = kotlin.math.min(targetDistance - currentDistance, segmentLength)
                                         progressPath.lineTo(left, bottom - radius - drawDistance)
                                         currentDistance += segmentLength
 
-                                        // Top-left corner
+
                                         if (targetDistance > currentDistance) {
                                             val arcLength = (Math.PI * radius / 2).toFloat()
                                             val remainingInArc = kotlin.math.min(targetDistance - currentDistance, arcLength)
@@ -479,7 +479,7 @@ fun ProgressBorderCanvas(
                                             )
                                             currentDistance += arcLength
 
-                                            // Top side (second half)
+
                                             if (targetDistance > currentDistance) {
                                                 val segmentLength = halfWidth
                                                 val drawDistance = kotlin.math.min(targetDistance - currentDistance, segmentLength)
@@ -494,7 +494,7 @@ fun ProgressBorderCanvas(
                 }
             }
 
-            // Draw the progress path
+
             drawPath(
                 path = progressPath,
                 color = primaryColor,

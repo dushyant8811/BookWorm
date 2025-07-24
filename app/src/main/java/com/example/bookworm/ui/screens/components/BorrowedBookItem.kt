@@ -38,7 +38,7 @@ fun BorrowedBookItem(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Book Cover Image
+
             AsyncImage(
                 model = book.imageUri,
                 contentDescription = book.title,
@@ -51,7 +51,7 @@ fun BorrowedBookItem(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Text content
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = book.title,
@@ -68,7 +68,7 @@ fun BorrowedBookItem(
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                // Due Date Chip
+
                 book.borrowedUntil?.let { dueDate ->
                     AssistChip(
                         onClick = { /* Display only */ },
@@ -82,7 +82,7 @@ fun BorrowedBookItem(
                 }
             }
 
-            // Arrow Icon
+
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = "View Details",

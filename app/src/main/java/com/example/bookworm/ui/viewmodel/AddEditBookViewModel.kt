@@ -27,7 +27,7 @@ class AddEditBookViewModel(
     private val repository: BookRepository
 ) : ViewModel() {
 
-    // State holders for all form fields
+
     val title = mutableStateOf("")
     val author = mutableStateOf("")
     val selectedGenre = mutableStateOf("Fiction")
@@ -39,10 +39,10 @@ class AddEditBookViewModel(
     private var currentBook: Book? = null
 
     val isEditing = bookId != null && bookId != -1
-    // A flag to track if the image has been changed by the user in edit mode
+
     private var isImageChanged = false
 
-    // Add a loading state to track when the book is being loaded
+
     val isLoading = mutableStateOf(false)
 
     init {
@@ -54,8 +54,8 @@ class AddEditBookViewModel(
 
             viewModelScope.launch {
                 try {
-                    // Add timeout to prevent hanging
-                    withTimeout(10000) { // 10 second timeout
+
+                    withTimeout(10000) {
                         println("DEBUG: About to call repository.getBookById($bookId)")
                         val bookFlow = repository.getBookById(bookId)
                         println("DEBUG: Got flow, calling firstOrNull()")
@@ -107,31 +107,31 @@ class AddEditBookViewModel(
                 println("DEBUG: IsEditing: $isEditing")
                 println("DEBUG: CurrentBook: $currentBook")
 
-                // Don't allow saving while still loading in edit mode
+
                 if (isEditing && isLoading.value) {
                     println("DEBUG: Still loading book data, cannot save yet")
                     return@launch
                 }
 
-                // Step 1: Determine the final, permanent image URI string.
+
                 println("DEBUG: Processing image URI...")
                 val finalImageUriString: String? = when {
-                    // Case 1: The user picked a new image or cleared it.
+
                     isImageChanged -> {
                         println("DEBUG: Image was changed")
                         imageUri.value?.let { uri ->
                             println("DEBUG: Copying image to internal storage...")
-                            // If a new URI exists, copy it to our app's permanent storage.
+
                             copyImageToInternalStorage(application, uri)
                         }
-                        // If they cleared the image, imageUri.value will be null, so this correctly results in null.
+
                     }
-                    // Case 2: We are editing, but the image was NOT changed.
+
                     isEditing -> {
                         println("DEBUG: Editing mode, keeping existing image")
                         currentBook?.imageUri
                     }
-                    // Case 3: We are adding a new book, and no image was picked.
+
                     else -> {
                         println("DEBUG: Adding new book, no image")
                         null
@@ -139,7 +139,7 @@ class AddEditBookViewModel(
                 }
                 println("DEBUG: Final image URI: $finalImageUriString")
 
-                // Step 2: Create or Update the book object with the final data.
+
                 if (isEditing) {
                     println("DEBUG: Updating existing book...")
                     currentBook?.let { book ->
@@ -157,7 +157,7 @@ class AddEditBookViewModel(
                         repository.update(updatedBook)
                         println("DEBUG: Repository.update completed successfully")
                     } ?: run {
-                        // FALLBACK: If currentBook is null, try to reload it first
+
                         println("ERROR: currentBook is null in edit mode! Attempting to reload...")
                         if (bookId != null) {
                             try {
@@ -205,23 +205,23 @@ class AddEditBookViewModel(
                 }
 
                 println("DEBUG: About to call onSaveFinished...")
-                // Step 3: If everything succeeded, call the callback to navigate back.
+
                 onSaveFinished()
                 println("DEBUG: onSaveFinished called successfully")
 
             } catch (e: Exception) {
-                // If any part of the process fails, we log the error.
+
                 println("ERROR: Exception during save: ${e.message}")
                 println("ERROR: Exception type: ${e::class.java.simpleName}")
                 println("ERROR: Stack trace:")
                 e.printStackTrace()
-                // We do NOT navigate back, so the user stays on the screen and knows the save failed.
+
             }
         }
     }
 
     private suspend fun copyImageToInternalStorage(context: Context, uri: Uri): String? {
-        return withContext(Dispatchers.IO) { // Perform file operations on a background thread
+        return withContext(Dispatchers.IO) {
             try {
                 val inputStream = context.contentResolver.openInputStream(uri)
                 if (inputStream == null) {
@@ -238,11 +238,11 @@ class AddEditBookViewModel(
                     }
                 }
 
-                // Return the URI string of the NEW, permanent file
+
                 Uri.fromFile(file).toString()
             } catch (e: Exception) {
                 e.printStackTrace()
-                null // Return null if copying fails
+                null
             }
         }
     }

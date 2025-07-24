@@ -20,7 +20,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage // <-- ADD THIS IMPORT
+import coil.compose.AsyncImage
 import com.example.bookworm.model.Book
 import com.example.bookworm.ui.theme.BookWormTheme
 
@@ -42,7 +42,7 @@ fun BookGridItem(
             ),
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        // FINAL: White cards for both screens
+
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column(horizontalAlignment = Alignment.Start) {
