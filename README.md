@@ -1,11 +1,11 @@
-BookWorm - A Smart Library Management App
+**BookWorm - A Smart Library Management App**
 
 BookWorm is a modern Android application built to help users manage a personal or small library catalog with ease. It leverages the latest Android technologies to provide a fast, intuitive, and visually rich user experience. From adding books with OCR to managing their borrowing status, BookWorm is your personal digital librarian.
 
 This project is built with a 100% Kotlin, single-activity architecture, using Jetpack Compose for the UI and following the official Google-recommended MVVM pattern.
 
-Core Features
-1. Visual Book Catalog with Live Search
+**Core Features**
+**1. Visual Book Catalog with Live Search**
 
 The main screen provides a beautiful and interactive list of all your books, equipped with powerful search capabilities.
 
@@ -15,7 +15,7 @@ Live Search & Dynamic Filtering: Instantly find any book with a powerful search 
 
 Effortless Scrolling: Built with LazyColumn for smooth and efficient performance, even with a large number of books.
 
-2. Smart Book Addition with OCR
+**2. Smart Book Addition with OCR**
 
 Adding new books to your library is faster than ever.
 
@@ -29,7 +29,7 @@ Automatically extract the title and author using on-device Machine Learning (Goo
 
 Set the captured photo as the book's cover image.
 
-3. Deliberate & Safe Deletion
+**3. Deliberate & Safe Deletion**
 
 Removing a book is a straightforward and safe process, preventing accidental deletions.
 
@@ -37,7 +37,7 @@ Long-Press to Delete: To delete a book, simply press and hold its card in the ma
 
 Confirmation Dialog: A confirmation dialog will appear, asking if you are sure you want to delete the book. This two-step process ensures you never remove an entry by mistake.
 
-4. Interactive Status Management
+**4. Interactive Status Management**
 
 Keep track of which books are available and which are borrowed with a dedicated and dynamic system.
 
@@ -47,7 +47,7 @@ Dynamic Action Button: In the book detail view, a single button intelligently sw
 
 Reactive UI: When you borrow or return a book, the UI updates instantly without any screen reloads, thanks to a reactive data flow from the database to the UI.
 
-5. Detailed Book View & Editing
+**5. Detailed Book View & Editing**
 
 View all details of a book in one place and easily make corrections.
 
@@ -55,7 +55,7 @@ Full-Size Cover: The detail screen prominently displays the book's cover image.
 
 Easy Editing: A clear "Edit" option allows you to navigate to a dedicated screen to update a book's cover image, title, or author.
 
-6. Robust and Modern Architecture
+**6. Robust and Modern Architecture**
 
 The app is built using a modern, scalable, and maintainable tech stack.
 
@@ -69,4 +69,4 @@ Kotlin Coroutines & Flow: For managing asynchronous operations and creating reac
 
 Hilt for Dependency Injection: Manages dependencies and simplifies the overall architecture.
 
-Coil for Image Loading: A lightweight and efficient image loading library optimized for Kotlin and Jetpack Compose
+Coil for Image Loading: A lightweight and efficient image loading library optimized for Kotlin and Jetpack Compose.
